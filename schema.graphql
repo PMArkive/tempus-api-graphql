@@ -1,158 +1,385 @@
 type Query {
+  """Get a single jump map by name or ID"""
   map(name: String, id: Int): Map
+
+  """Get a list of jump maps, with an optional search parameter"""
   maps(search: String, start: Int, limit: Int): [Map!]!
+
+  """Get a player by ID"""
   player(id: Int!): Player
+
+  """Get a record by ID"""
   record(id: Int!): Record
+
+  """Get a demo recording by ID"""
   demo(id: Int!): Demo
+
+  """Get a server by ID"""
   server(id: Int!): Server
+
+  """Get a list of servers, with an optional search parameter"""
   servers(search: String, start: Int, limit: Int): [Server!]!
+
+  """Get the recent activity on the Tempus network"""
   activity: Activity!
+
+  """
+  Get a list of players, with an optional search parameter, in descending order by overall rank
+  """
   players(search: String, start: Int, limit: Int): [Player!]!
+
+  """Get the soldier, demoman, or overall tempus rankings"""
   rankings(start: Int, type: RankingType!): RankingListing!
 }
 
 """A jump map"""
 type Map {
+  """The ID of the map"""
   id: String!
+
+  """The name of the map"""
   name: String!
+
+  """The authors of this map"""
   authors: [Author!]!
+
+  """Videos showing playthroughs of this map"""
   videos: MapVideos!
+
+  """The tiers of this map"""
   tiers: Tiers!
+
+  """The zones of this map"""
   zones: Zones!
+
+  """
+  Player records on this map, filterable by class and zone. Later records can be fetched with a non-empty start argument
+  """
   records(zoneType: ZoneType, zoneId: Int, start: Int, limit: Int, class: Class!): [Record!]!
+
+  """
+  Fetch a single record on this map by providing the player and class, and optionally a zone. Without a zone, the player's map record will be fetched
+  """
   record(zoneType: ZoneType, zoneId: Int, playerId: Int!, class: Class!): Record
+
+  """Fetch the world record on this map by class"""
   wr(class: Class!): Record
 }
 
+"""An author of a map"""
 type Author {
+  """The ID of the author"""
   id: Int!
+
+  """The name of the author"""
   name: String!
+
+  """The number of maps this author has created"""
   mapCount: Int!
+
+  """The author's Player, if the author is a registered Tempus player"""
   player: Player
 }
 
 type Player {
+  """The ID of the player"""
   id: Int!
+
+  """The name of the player"""
   name: String!
+
+  """The country of the player. Where they last connected to Tempus from"""
   country: String
+
+  """The abbreviated country code of the player"""
   countryCode: String
+
+  """The Steam ID of the player"""
   steamId: String!
+
+  """When the player was first seen, as a unix timestamp in seconds"""
   firstSeen: Float!
+
+  """When the player was last seen, as a unix timestamp in seconds"""
   lastSeen: Float!
+
+  """The overall ranks of the player"""
   ranks: Ranks!
+
+  """The country-specific ranks of the player"""
   countryRanks: Ranks!
+
+  """The overall statistics of the player"""
   stats: StatsCollection!
+
+  """
+  Fetch information about a particular record of this player. Requires either the class, and either the map ID or name. Can optionally be filtered by zone type, defaulting to the overall map zone
+  """
   record(mapId: Int, mapName: String, zoneType: ZoneType, zoneId: Int, class: Class!): Record
 }
 
+"""The ranks of a player"""
 type Ranks {
+  """A player's overall rankings"""
   overall: Rank!
+
+  """A player's soldier rankings"""
   soldier: Rank!
+
+  """A player's demoman rankings"""
   demoman: Rank!
 }
 
+"""The rank of a player, either overall, soldier, or demoman"""
 type Rank {
+  """The player's number of points"""
   points: Float!
+
+  """The rank"""
   rank: Int!
   totalRanked: Int!
+
+  """The player's title, based on their rank"""
   title: String
 }
 
+"""Overall statistics about a player's points and completions"""
 type StatsCollection {
+  """Statistics about a player's personal records"""
   pr: Stats!
+
+  """Statistics about a player's world records"""
   wr: Stats!
+
+  """Statistics about a player's top times"""
   top: Stats!
 }
 
+"""
+Overall statistics about a player's points and completions within a single run type (pr/wr/top time)
+"""
 type Stats {
+  """Statistics about a player's bonus completions"""
   bonus: Stat!
+
+  """Statistics about a player's course completions"""
   course: Stat!
+
+  """Statistics about a player's map completions"""
   map: Stat!
+
+  """Statistics about a player's trick completions"""
   trick: Stat!
 }
 
+"""
+Overall statistics about a player's points and completions within a single zone category and run type (pr/wr/top time)
+"""
 type Stat {
+  """A count of the player's completions"""
   count: Int!
+
+  """A count of the player's points for completions"""
   points: Int!
 }
 
+"""A single record on a zone of a map as a specific class"""
 type Record {
+  """The ID of the record"""
   id: Int!
+
+  """The player who performed this record"""
   player: Player!
+
+  """The duration of the record in seconds"""
   duration: Float!
+
+  """The ranking of this record"""
   rank: Int!
+
+  """
+  The date when this record was performed, as a unix timestamp in seconds
+  """
   date: Float!
+
+  """The tiers of the zone for this record"""
   tiers: Tiers!
+
+  """The map for this record"""
   map: Map!
+
+  """The zone on the map of this record"""
   zone: Zone!
+
+  """The demo recording for this record, if available"""
   demo: Demo
+
+  """The class with which this record was performed"""
   class: Class!
+
+  """The tick within the demo when this record began"""
   demoStartTick: Int
+
+  """The tick within the demo when this record stopped"""
   demoEndTick: Int
+
+  """The server this record was performed on"""
   server: Server!
+
+  """The checkpoints splits of this record"""
   splits: [Split!]!
 }
 
+"""
+The tier, or difficulty of a map. Tiers range from 1-10, and can be different for each class
+"""
 type Tiers {
+  """The soldier tier of a map"""
   soldier: Int
+
+  """The demoman tier of a map"""
   demoman: Int
 }
 
+"""A zone within a map"""
 type Zone {
+  """The ID of the zone"""
   id: Int!
+
+  """The map of the zone"""
   map: Map!
+
+  """The type of the zone"""
   type: String!
+
+  """The index of the zone"""
   zoneindex: Int!
+
+  """The custom name of the zone, if it has one"""
   customName: String
 }
 
+"""
+A demo recording. Contains information about a particular server recording. Not the same as the abbreviation for demoman
+"""
 type Demo {
+  """The ID of this demo"""
   id: Int!
+
+  """The map for this demo"""
   map: Map!
+
+  """The filename of this demo"""
   filename: String
+
+  """The date of this demo in unix seconds"""
   date: Float!
+
+  """The URL for downloading this demo, if available"""
   url: String
+
+  """If this demo is currently recording"""
   recording: Boolean!
+
+  """If an upload of this demo has been requested"""
   requested: Boolean!
+
+  """If the upload of this demo has expired"""
   expired: Boolean!
+
+  """If the upload of this demo has been deleted"""
   deleted: Boolean!
+
+  """The player who uploaded this demo"""
   uploader: Player
+
+  """The server where this demo was recorded"""
   server: Server!
 }
 
+"""A single game server on the Tempus network"""
 type Server {
+  """The ID of the server"""
   id: Int
+
+  """The map the server is currently on"""
   currentMap: Map
+
+  """The free disk space on the server"""
   freeDisk: Int
+
+  """The game version of the server"""
   gameVersion: Int
+
+  """The hostname of the server"""
   hostName: String
+
+  """The maximum number of players allowed on the server"""
   maxPlayers: Int
+
+  """The next map for the server"""
   nextMap: Map
+
+  """The number of players currently on the server"""
   playerCount: Int
+
+  """The listing of players currently on the server"""
   players: [Player!]
+
+  """The address of the server that players can connect with"""
   address: String
+
+  """The country of the server"""
   country: String
+
+  """Whether or not the server is hidden"""
   hidden: Boolean
+
+  """Whether or not the server is online"""
   online: Boolean
+
+  """The name of the server"""
   name: String
+
+  """The port of the server"""
   port: Int
+
+  """The short name of the server"""
   shortname: String
+
+  """The recently recorded demos of the server"""
   demos: [Demo!]
 }
 
+"""
+The class, either soldier or demoman. Demoman is often abbreviated as 'demo', which is different from a demo recording
+"""
 enum Class {
   SOLDIER
   DEMOMAN
 }
 
+"""A checkpoint split within a record on a particular zone/map"""
 type Split {
+  """The type of split"""
   type: String!
+
+  """Which zone index of the map the split is for"""
   zoneindex: Int!
+
+  """The custom name of the zone"""
   customName: String
+
+  """When in the run the split was, in seconds"""
   duration: Float
+
+  """
+  The difference between this split and the previous best for this player
+  """
   comparedDuration: Float
 }
 
+"""The different types of zones"""
 enum ZoneType {
   BONUS
   BONUS_END
@@ -165,28 +392,59 @@ enum ZoneType {
   TRICK
 }
 
+"""The videos with playthroughs of a map"""
 type MapVideos {
+  """The URL for the video of a soldier playthrough of a map"""
   soldier: String
+
+  """The URL for the video of a demoman playthrough of a map"""
   demoman: String
 }
 
+"""The zones for a map"""
 type Zones {
+  """The bonus zones for a map"""
   bonus: [Zone!]!
+
+  """The bonus end zones for a map"""
   bonusEnd: [Zone!]!
+
+  """The checkpoint zones for a map"""
   checkpoint: [Zone!]!
+
+  """The course zones for a map"""
   course: [Zone!]!
+
+  """The course end zones for a map"""
   courseEnd: [Zone!]!
+
+  """The linear zones for a map"""
   linear: [Zone!]!
+
+  """The map zones for a map"""
   map: [Zone!]!
+
+  """The end zones for a map"""
   mapEnd: [Zone!]!
+
+  """The miscellaneous zones for a map"""
   misc: [Zone!]!
+
+  """The trick zones for a map"""
   trick: [Zone!]!
 }
 
 type Activity {
+  """The recent bonus world records"""
   bonusWrs(start: Int, limit: Int): [Record!]!
+
+  """The recent course world records"""
   courseWrs(start: Int, limit: Int): [Record!]!
+
+  """The recent map world records"""
   mapWrs(start: Int, limit: Int): [Record!]!
+
+  """The recent map top times"""
   mapTops(start: Int, limit: Int): [Record!]!
 }
 
@@ -195,12 +453,21 @@ type RankingListing {
   entries: [Ranking!]!
 }
 
+"""
+A particular player's ranking within the context of other runs on the same map/zone
+"""
 type Ranking {
+  """The player for this ranking"""
   player: Player!
+
+  """The rank of the player"""
   rank: Int!
+
+  """The number of points earned for this ranking"""
   points: Float!
 }
 
+"""The type of ranking"""
 enum RankingType {
   OVERALL
   SOLDIER
